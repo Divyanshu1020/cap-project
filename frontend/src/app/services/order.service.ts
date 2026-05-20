@@ -14,16 +14,22 @@ export class OrderService {
     return this.http.get<Order[]>(this.apiUrl);
   }
 
+  /** Get orders for the current logged-in user */
+  getMyOrders(userId: number): Observable<Order[]> {
+    return this.http.get<Order[]>(`${this.apiUrl}/my-orders?user_id=${userId}`);
+  }
+
   /** Get a single order */
   getOrder(id: number): Observable<Order> {
     return this.http.get<Order>(`${this.apiUrl}/${id}`);
   }
 
   /** Place an order from current cart */
-  placeOrder(customerName: string, customerEmail: string): Observable<Order> {
+  placeOrder(customerName: string, customerEmail: string, userId: number): Observable<Order> {
     return this.http.post<Order>(this.apiUrl, {
       customer_name: customerName,
       customer_email: customerEmail,
+      user_id: userId,
     });
   }
 

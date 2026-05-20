@@ -10,11 +10,15 @@ class Order(db.Model):
     __tablename__ = 'orders'
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     total_amount = db.Column(db.Numeric(10, 2), nullable=False)
     status = db.Column(db.String(20), nullable=False, default='Pending')
     customer_name = db.Column(db.String(100), nullable=False)
     customer_email = db.Column(db.String(100), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # Relationship to User
+    user = db.relationship('User', lazy=True)
 
     # Relationship to OrderItems
     items = db.relationship('OrderItem', backref='order', lazy=True,
@@ -24,6 +28,7 @@ class Order(db.Model):
         """Serialize order to dictionary."""
         return {
             'id': self.id,
+            'user_id': self.user_id,
             'total_amount': float(self.total_amount),
             'status': self.status,
             'customer_name': self.customer_name,

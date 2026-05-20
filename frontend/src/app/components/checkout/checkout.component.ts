@@ -156,8 +156,13 @@ export class CheckoutComponent implements OnInit {
       this.toast.error('Please fill in address and payment method');
       return;
     }
+    const user = this.auth.currentUser;
+    if (!user) {
+      this.toast.error('You must be logged in to place an order');
+      return;
+    }
     this.placing = true;
-    this.orderService.placeOrder(this.customerName.trim(), this.customerEmail.trim()).subscribe({
+    this.orderService.placeOrder(this.customerName.trim(), this.customerEmail.trim(), user.id).subscribe({
       next: order => {
         this.orderId = order.id;
         this.orderPlaced = true;

@@ -31,6 +31,11 @@ import { ToastService } from '../../services/toast.service';
             <mat-icon>home</mat-icon>
             <span>Home</span>
           </a>
+          <!-- My Orders link: only visible to logged-in users -->
+          <a mat-button routerLink="/my-orders" routerLinkActive="active" *ngIf="auth.isLoggedIn">
+            <mat-icon>receipt_long</mat-icon>
+            <span>My Orders</span>
+          </a>
           <!-- Admin link: only visible to admin -->
           <a mat-button routerLink="/admin" routerLinkActive="active" *ngIf="auth.isAdmin">
             <mat-icon>dashboard</mat-icon>

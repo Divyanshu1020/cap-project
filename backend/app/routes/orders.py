@@ -1,4 +1,4 @@
-"""Orders API routes — place order, list orders, update status."""
+"""Orders API routes — place order, list orders, update status, my orders."""
 
 from flask import Blueprint, request, jsonify
 from app.extensions import db
@@ -13,6 +13,18 @@ orders_bp = Blueprint('orders', __name__)
 def get_orders():
     """List all orders (newest first)."""
     orders = Order.query.order_by(Order.created_at.desc()).all()
+    return jsonify([order.to_dict() for order in orders])
+
+
+@orders_bp.route('/api/orders/my-orders', methods=['GET'])
+def get_my_orders():
+    """Get orders for a specific user (newest first)."""
+    user_id = request.args.get('user_id', type=int)
+    if not user_id:
+        return jsonify({'error': "'user_id' query parameter is required"}), 400
+
+    orders = Order.query.filter_by(user_id=user_id) \
+        .order_by(Order.created_at.desc()).all()
     return jsonify([order.to_dict() for order in orders])
 
 
@@ -33,6 +45,7 @@ def place_order():
     Request body:
         customer_name (str): Customer's name
         customer_email (str): Customer's email
+        user_id (int): ID of the logged-in user
     """
     data = request.get_json()
 
@@ -42,6 +55,9 @@ def place_order():
 
     if not data.get('customer_email', '').strip():
         return jsonify({'error': "'customer_email' is required"}), 400
+
+    if not data.get('user_id'):
+        return jsonify({'error': "'user_id' is required"}), 400
 
     # Get cart items
     cart_items = CartItem.query.all()
@@ -80,6 +96,7 @@ def place_order():
         status='Pending',
         customer_name=data['customer_name'].strip(),
         customer_email=data['customer_email'].strip(),
+        user_id=data['user_id'],
     )
     db.session.add(order)
     db.session.flush()  # Get order.id without committing

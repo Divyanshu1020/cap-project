@@ -4,6 +4,7 @@ services:
   db:
     image: mysql:8.0
     container_name: bookstore_mysql
+    restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: bookstore
@@ -11,6 +12,19 @@ services:
       - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: bookstore_phpmyadmin
+    restart: always
+    ports:
+      - "8080:80"
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      MYSQL_ROOT_PASSWORD: root
+    depends_on:
+      - db
 
 volumes:
   mysql_data:
