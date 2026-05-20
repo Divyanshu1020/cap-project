@@ -2,6 +2,7 @@
 
 from app.extensions import db
 from app.models.book import Book
+from app.models.user import User
 
 
 SAMPLE_BOOKS = [
@@ -153,7 +154,7 @@ SAMPLE_BOOKS = [
 
 
 def seed_database():
-    """Insert sample books into the database if table is empty."""
+    """Insert sample books and default admin into the database."""
     if Book.query.count() == 0:
         for book_data in SAMPLE_BOOKS:
             book = Book(**book_data)
@@ -162,3 +163,18 @@ def seed_database():
         print(f"SUCCESS: Seeded {len(SAMPLE_BOOKS)} books into the database.")
     else:
         print(f"INFO: Database already has {Book.query.count()} books. Skipping seed.")
+
+    # Seed default admin account
+    if not User.query.filter_by(email='admin@gmail.com').first():
+        admin = User(
+            name='Admin',
+            email='admin@gmail.com',
+            password='admin@123',
+            role='admin',
+        )
+        db.session.add(admin)
+        db.session.commit()
+        print("SUCCESS: Default admin account created (admin@gmail.com / admin@123)")
+    else:
+        print("INFO: Admin account already exists. Skipping.")
+

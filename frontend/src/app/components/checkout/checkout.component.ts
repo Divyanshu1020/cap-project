@@ -11,6 +11,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { LoadingSpinnerComponent } from '../shared/loading-spinner/loading-spinner.component';
 import { CartService } from '../../services/cart.service';
 import { OrderService } from '../../services/order.service';
+import { AuthService } from '../../services/auth.service';
 import { ToastService } from '../../services/toast.service';
 import { CartItem } from '../../models/models';
 
@@ -49,19 +50,32 @@ import { CartItem } from '../../models/models';
           <mat-divider></mat-divider>
           <mat-form-field appearance="outline">
             <mat-label>Full Name</mat-label>
-            <input matInput [(ngModel)]="customerName" placeholder="John Doe" required>
+            <input matInput [(ngModel)]="customerName" placeholder="John Doe" readonly>
             <mat-icon matPrefix>badge</mat-icon>
           </mat-form-field>
           <mat-form-field appearance="outline">
             <mat-label>Email Address</mat-label>
-            <input matInput [(ngModel)]="customerEmail" type="email" placeholder="john@example.com" required>
+            <input matInput [(ngModel)]="customerEmail" type="email" placeholder="john@example.com" readonly>
             <mat-icon matPrefix>email</mat-icon>
+          </mat-form-field>
+
+          <h2 style="margin-top:24px"><mat-icon>home</mat-icon> Shipping Details</h2>
+          <mat-divider></mat-divider>
+          <mat-form-field appearance="outline">
+            <mat-label>Shipping Address</mat-label>
+            <textarea matInput [(ngModel)]="address" rows="2" placeholder="123 Main St, City, Country" required></textarea>
+            <mat-icon matPrefix>location_on</mat-icon>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Payment Method</mat-label>
+            <input matInput [(ngModel)]="paymentMethod" placeholder="Cash on Delivery" required>
+            <mat-icon matPrefix>payment</mat-icon>
           </mat-form-field>
 
           <h2 style="margin-top:24px"><mat-icon>list_alt</mat-icon> Order Items</h2>
           <mat-divider></mat-divider>
           <div class="order-item" *ngFor="let item of items">
-            <span class="oi-title">{{ item.book.title }} × {{ item.quantity }}</span>
+            <span class="oi-title">{{ item.book.title }} x {{ item.quantity }}</span>
             <span class="oi-price">{{ item.book.price * item.quantity | currency }}</span>
           </div>
           <mat-divider></mat-divider>
@@ -72,7 +86,7 @@ import { CartItem } from '../../models/models';
 
           <button mat-raised-button color="primary" class="place-btn"
                   (click)="placeOrder()"
-                  [disabled]="placing || !customerName.trim() || !customerEmail.trim()">
+                  [disabled]="placing || !address.trim() || !paymentMethod.trim()">
             <mat-icon>{{ placing ? 'hourglass_empty' : 'shopping_bag' }}</mat-icon>
             {{ placing ? 'Placing Order...' : 'Place Order' }}
           </button>
@@ -107,6 +121,8 @@ export class CheckoutComponent implements OnInit {
   totalPrice = 0;
   customerName = '';
   customerEmail = '';
+  address = '';
+  paymentMethod = 'Cash on Delivery';
   loading = false;
   placing = false;
   orderPlaced = false;
@@ -115,11 +131,19 @@ export class CheckoutComponent implements OnInit {
   constructor(
     private cartService: CartService,
     private orderService: OrderService,
+    private auth: AuthService,
     private toast: ToastService,
     private router: Router,
   ) {}
 
   ngOnInit() {
+    // Auto-fill from logged-in user
+    const user = this.auth.currentUser;
+    if (user) {
+      this.customerName = user.name;
+      this.customerEmail = user.email;
+    }
+
     this.loading = true;
     this.cartService.getCart().subscribe({
       next: r => { this.items = r.items; this.totalPrice = r.total_price; this.loading = false; },
@@ -128,8 +152,8 @@ export class CheckoutComponent implements OnInit {
   }
 
   placeOrder() {
-    if (!this.customerName.trim() || !this.customerEmail.trim()) {
-      this.toast.error('Please fill in all fields');
+    if (!this.address.trim() || !this.paymentMethod.trim()) {
+      this.toast.error('Please fill in address and payment method');
       return;
     }
     this.placing = true;
